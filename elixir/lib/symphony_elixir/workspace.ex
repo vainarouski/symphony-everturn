@@ -194,13 +194,29 @@ defmodule SymphonyElixir.Workspace do
   end
 
   defp workspace_path_for_issue(safe_id, nil) when is_binary(safe_id) do
-    Config.settings!().workspace.root
+    issue_workspace_root()
     |> Path.join(safe_id)
     |> PathSafety.canonicalize()
   end
 
   defp workspace_path_for_issue(safe_id, worker_host) when is_binary(safe_id) and is_binary(worker_host) do
-    {:ok, Path.join(Config.settings!().workspace.root, safe_id)}
+    {:ok, Path.join(issue_workspace_root(), safe_id)}
+  end
+
+  defp issue_workspace_root do
+    settings = Config.settings!()
+    root = settings.workspace.root
+
+    case settings.tracker.kind do
+      "github" ->
+        case settings.tracker.repo do
+          repo when is_binary(repo) and repo != "" -> Path.join(root, repo)
+          _ -> root
+        end
+
+      _ ->
+        root
+    end
   end
 
   defp safe_identifier(identifier) do
