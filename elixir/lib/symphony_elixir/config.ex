@@ -91,6 +91,23 @@ defmodule SymphonyElixir.Config do
     end
   end
 
+  @spec github_repo() :: String.t() | nil
+  def github_repo, do: settings!().tracker.repo
+
+  @spec github_token() :: String.t() | nil
+  def github_token do
+    case System.get_env("GITHUB_TOKEN") do
+      "" -> nil
+      value -> value
+    end
+  end
+
+  @spec github_label_prefix() :: String.t()
+  def github_label_prefix, do: settings!().tracker.label_prefix || "symphony"
+
+  @spec agent_kind() :: String.t() | nil
+  def agent_kind, do: settings!().agent.kind
+
   @spec validate!() :: :ok | {:error, term()}
   def validate! do
     with {:ok, settings} <- settings() do
@@ -119,7 +136,7 @@ defmodule SymphonyElixir.Config do
       is_nil(settings.tracker.kind) ->
         {:error, :missing_tracker_kind}
 
-      settings.tracker.kind not in ["linear", "memory"] ->
+      settings.tracker.kind not in ["linear", "memory", "github"] ->
         {:error, {:unsupported_tracker_kind, settings.tracker.kind}}
 
       settings.tracker.kind == "linear" and not is_binary(settings.tracker.api_key) ->
@@ -127,6 +144,12 @@ defmodule SymphonyElixir.Config do
 
       settings.tracker.kind == "linear" and not is_binary(settings.tracker.project_slug) ->
         {:error, :missing_linear_project_slug}
+
+      settings.tracker.kind == "github" and not is_binary(github_token()) ->
+        {:error, :missing_github_token}
+
+      settings.tracker.kind == "github" and not is_binary(settings.tracker.repo) ->
+        {:error, :missing_github_repo}
 
       true ->
         :ok

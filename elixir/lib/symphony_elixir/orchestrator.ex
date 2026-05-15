@@ -237,6 +237,14 @@ defmodule SymphonyElixir.Orchestrator do
         Logger.error("Linear project slug missing in WORKFLOW.md")
         state
 
+      {:error, :missing_github_token} ->
+        Logger.error("GitHub token missing (set GITHUB_TOKEN environment variable)")
+        state
+
+      {:error, :missing_github_repo} ->
+        Logger.error("GitHub repo missing in WORKFLOW.md (tracker.repo)")
+        state
+
       {:error, :missing_tracker_kind} ->
         Logger.error("Tracker kind missing in WORKFLOW.md")
 

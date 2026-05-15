@@ -23,7 +23,7 @@ defmodule SymphonyElixir.Claude.AppServerTest do
   end
 
   test "start_session rejects workspace root directory" do
-    workspace_root = Config.workspace_root()
+    workspace_root = Config.settings!().workspace.root
     assert {:error, {:invalid_workspace_cwd, :workspace_root, _}} = AppServer.start_session(workspace_root)
   end
 
