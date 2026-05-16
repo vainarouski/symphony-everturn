@@ -50,6 +50,8 @@ defmodule SymphonyElixir.Orchestrator do
 
   @impl true
   def init(_opts) do
+    warn_on_invalid_config()
+
     now_ms = System.monotonic_time(:millisecond)
     config = Config.settings!()
 
@@ -221,6 +223,24 @@ defmodule SymphonyElixir.Orchestrator do
     {:noreply, state}
   end
 
+  defp warn_on_invalid_config do
+    case Config.validate!() do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("Configuration warning: #{reason}")
+
+        IO.puts(
+          :stderr,
+          IO.ANSI.yellow() <>
+            IO.ANSI.bright() <>
+            "\n⚠  Configuration warning: #{reason}\n" <>
+            IO.ANSI.reset()
+        )
+    end
+  end
+
   defp maybe_dispatch(%State{} = state) do
     state = reconcile_running_issues(state)
 
@@ -235,6 +255,10 @@ defmodule SymphonyElixir.Orchestrator do
 
       {:error, :missing_linear_project_slug} ->
         Logger.error("Linear project slug missing in WORKFLOW.md")
+        state
+
+      {:error, message} when is_binary(message) ->
+        Logger.error(message)
         state
 
       {:error, :missing_tracker_kind} ->
