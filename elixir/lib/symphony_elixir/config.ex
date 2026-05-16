@@ -146,10 +146,10 @@ defmodule SymphonyElixir.Config do
         {:error, :missing_linear_project_slug}
 
       settings.tracker.kind == "github" and not is_binary(github_token()) ->
-        {:error, :missing_github_token}
+        {:error, "GitHub token missing (set GITHUB_TOKEN environment variable)"}
 
       settings.tracker.kind == "github" and not is_binary(settings.tracker.repo) ->
-        {:error, :missing_github_repo}
+        {:error, "GitHub repo missing in WORKFLOW.md (tracker.repo)"}
 
       true ->
         :ok
