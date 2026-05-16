@@ -30,7 +30,7 @@ defmodule SymphonyElixir.CLI do
 
       {:version, version} ->
         rev_suffix = if @git_rev != "", do: " #{@git_rev}", else: ""
-        IO.puts("symphony #{version} (sapsaldog/symphony#{rev_suffix})")
+        IO.puts("symphony #{version} (vainarouski/symphony-everturn#{rev_suffix})")
 
       {:error, message} ->
         IO.puts(:stderr, message)
