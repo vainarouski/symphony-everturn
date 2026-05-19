@@ -437,7 +437,8 @@ defmodule SymphonyElixir.Claude.AppServer do
   defp default_on_message(_message), do: :ok
 
   defp send_message(port, message) do
-    line = Jason.encode!(message) <> "\n"
+    payload = Map.put_new(message, "jsonrpc", "2.0")
+    line = Jason.encode!(payload) <> "\n"
     Port.command(port, line)
   end
 end
