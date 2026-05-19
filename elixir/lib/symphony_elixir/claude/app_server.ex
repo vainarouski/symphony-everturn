@@ -208,7 +208,10 @@ defmodule SymphonyElixir.Claude.AppServer do
       "method" => "thread/start",
       "id" => @thread_start_id,
       "params" => %{
-        "permissionMode" => "acceptEdits",
+        # bypassPermissions: needed for unattended orchestration — acceptEdits
+        # only auto-approves Write/Edit; Bash tool calls (git commit, gh pr create,
+        # pytest, etc.) still hit prompts and fail with permission_denied.
+        "permissionMode" => "bypassPermissions",
         "cwd" => Path.expand(workspace)
       }
     })
