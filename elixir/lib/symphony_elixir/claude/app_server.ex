@@ -229,20 +229,33 @@ defmodule SymphonyElixir.Claude.AppServer do
   end
 
   defp start_turn(port, thread_id, prompt, issue, workspace) do
+    base_params = %{
+      "threadId" => thread_id,
+      "input" => [
+        %{
+          "type" => "text",
+          "text" => prompt
+        }
+      ],
+      "cwd" => Path.expand(workspace),
+      "title" => "#{issue.identifier}: #{issue.title}"
+    }
+
+    # Optional model override. claude-app-server forwards --model to the claude
+    # CLI when present; otherwise claude uses its configured default.
+    params =
+      case System.get_env("SYMPHONY_CLAUDE_MODEL") do
+        model when is_binary(model) and model != "" ->
+          Map.put(base_params, "model", model)
+
+        _ ->
+          base_params
+      end
+
     send_message(port, %{
       "method" => "turn/start",
       "id" => @turn_start_id,
-      "params" => %{
-        "threadId" => thread_id,
-        "input" => [
-          %{
-            "type" => "text",
-            "text" => prompt
-          }
-        ],
-        "cwd" => Path.expand(workspace),
-        "title" => "#{issue.identifier}: #{issue.title}"
-      }
+      "params" => params
     })
 
     case await_response(port, @turn_start_id) do
