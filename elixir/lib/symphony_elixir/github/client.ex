@@ -15,10 +15,20 @@ defmodule SymphonyElixir.GitHub.Client do
       prefix = Config.github_label_prefix()
       request_fun = Keyword.get(opts, :request_fun, &default_request_fun/1)
 
-      fetch_issues_for_each_label(
-        ["#{prefix}:todo", "#{prefix}:in-progress"],
-        request_fun, token, owner, repo, prefix
-      )
+      # Poll every active state configured in WORKFLOW.md, not just todo/in-progress.
+      # The Linear client already honors `tracker.active_states`; the GitHub
+      # client previously hardcoded only two states, which left `rework` (set
+      # by the rework-trigger GitHub Action when reviewers comment) invisible
+      # to the orchestrator and the agent never re-engaged.
+      active_states =
+        case Config.settings!().tracker.active_states do
+          states when is_list(states) and states != [] -> states
+          _ -> ["todo", "in-progress"]
+        end
+
+      labels = Enum.map(active_states, fn state -> "#{prefix}:#{state}" end)
+
+      fetch_issues_for_each_label(labels, request_fun, token, owner, repo, prefix)
     end
   end
 
